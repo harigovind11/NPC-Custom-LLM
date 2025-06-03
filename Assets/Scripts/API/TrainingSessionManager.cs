@@ -3,7 +3,6 @@ using UnityEngine;
 public class TrainingSessionManager : MonoBehaviour
 {
     private string sessionId;
-    private string selectedScenarioId = "SC001"; // TODO: Replace with dynamic UI selection
 
     private GoogleCloudTTS tts;
     private void Start()
@@ -18,6 +17,8 @@ public class TrainingSessionManager : MonoBehaviour
         VRTrainingAPI.CreateSession(OnSessionCreated);
     }
 
+    public string preSelectedScenarioId = ScenarioSelection.SelectedScenarioId;
+
     private void OnSessionCreated(string createdSessionId)
     {
         if (string.IsNullOrEmpty(createdSessionId))
@@ -29,18 +30,27 @@ public class TrainingSessionManager : MonoBehaviour
         sessionId = createdSessionId;
         Debug.Log("[TrainingSessionManager] Session created: " + sessionId);
 
-        VRTrainingAPI.GetScenarios(OnScenariosLoaded);
+        if (!string.IsNullOrEmpty(preSelectedScenarioId))
+        {
+            Debug.Log("[TrainingSessionManager] Using pre-selected scenario ID: " + preSelectedScenarioId);
+            ScenarioSelection.SelectedScenarioId = preSelectedScenarioId;
+            // Optionally proceed directly to next step if needed
+        }
+        else
+        {
+            VRTrainingAPI.GetScenarios(OnScenariosLoaded);
+        }
     }
 
-    private void OnScenariosLoaded(string scenariosJson)
+    private void OnScenariosLoaded(string scenarioJson)
     {
-        if (string.IsNullOrEmpty(scenariosJson))
+        if (string.IsNullOrEmpty(scenarioJson))
         {
-            Debug.LogError("[TrainingSessionManager] Failed to load scenarios.");
+            Debug.LogError("[TrainingSessionManager] Failed to load scenario.");
             return;
         }
 
-        Debug.Log("[TrainingSessionManager] Scenarios loaded:\n" + scenariosJson);
+        Debug.Log("[TrainingSessionManager] Scenario loaded:\n" + scenarioJson);
 
         // TODO: Parse JSON and optionally populate UI for scenario selection
     }
@@ -63,7 +73,7 @@ public class TrainingSessionManager : MonoBehaviour
         }
 
         Debug.Log($"[TrainingSessionManager] Sending recognized speech: \"{recognizedText}\"");
-        VRTrainingAPI.SendMessage(selectedScenarioId, recognizedText, OnMessageResponseReceived);
+        VRTrainingAPI.SendMessage(ScenarioSelection.SelectedScenarioId, recognizedText, OnMessageResponseReceived);
     }
 
     private void OnMessageResponseReceived(string responseJson)
