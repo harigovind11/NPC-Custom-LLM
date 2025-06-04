@@ -1,9 +1,11 @@
+using System;
 using UnityEngine;
 
 public class ScenarioDataHolder : MonoBehaviour
 {
+   
     public static ScenarioDataHolder Instance { get; private set; }
-    public Scenario selectedScenario;
+    private Scenario _selectedScenario;
 
     private void Awake()
     {

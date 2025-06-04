@@ -28,6 +28,7 @@ public class TrainingSessionManager : MonoBehaviour
         }
 
         sessionId = createdSessionId;
+        SessionData.sessionId = createdSessionId;
         Debug.Log("[TrainingSessionManager] Session created: " + sessionId);
 
         if (!string.IsNullOrEmpty(preSelectedScenarioId))
