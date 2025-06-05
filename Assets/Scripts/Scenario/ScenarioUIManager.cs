@@ -13,8 +13,9 @@ public class ScenarioUIManager : MonoBehaviour
     public Transform contentParent;         // Assign ScrollView/Viewport/Content
 
     [Header("Data Source")]
-    public string jsonURL = "https://vr-training-bot-api--d8e8mmg.bluetree-7578d21d.eastus.azurecontainerapps.io/scenarios"; 
 
+    public  VRConfig config;
+   
     void Start()
     {
         StartCoroutine(LoadScenarios());
@@ -22,7 +23,8 @@ public class ScenarioUIManager : MonoBehaviour
 
     IEnumerator LoadScenarios()
     {
-        UnityWebRequest request = UnityWebRequest.Get(jsonURL);
+
+        UnityWebRequest request = UnityWebRequest.Get($"{config.baseUrl}/scenarios");
         yield return request.SendWebRequest();
 
         if (request.result == UnityWebRequest.Result.Success)

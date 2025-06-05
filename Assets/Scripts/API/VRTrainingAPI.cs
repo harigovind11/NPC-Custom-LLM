@@ -7,11 +7,10 @@ using UnityEngine.Networking;
 public class VRTrainingAPI : MonoBehaviour
 {
     [Header("API Settings")]
-    public string baseUrl = "https://vr-training-bot-api--d8e8mmg.bluetree-7578d21d.eastus.azurecontainerapps.io";
-
     private string sessionId;
+    
     public static VRTrainingAPI Instance;
-
+    public VRConfig config;
     private void Awake()
     {
         if (Instance == null)
@@ -39,24 +38,23 @@ public class VRTrainingAPI : MonoBehaviour
 
     private IEnumerator CreateSessionCoroutine(Action<string> onCreated)
     {
-        string url = $"{baseUrl}/session/create";
-        using (UnityWebRequest request = UnityWebRequest.PostWwwForm(url, ""))
-        {
-            yield return request.SendWebRequest();
+        string url = $"{config.baseUrl}/session/create";
+        print(url);
+        using UnityWebRequest request = UnityWebRequest.PostWwwForm(url, "");
+        yield return request.SendWebRequest();
 
-            if (request.result == UnityWebRequest.Result.Success)
-            {
-                string json = request.downloadHandler.text;
-                var response = JsonUtility.FromJson<SessionResponse>(json);
-                sessionId = response.session_id;
-                Debug.Log("[VRTrainingAPI] Session Created: " + sessionId);
-                onCreated?.Invoke(sessionId);
-            }
-            else
-            {
-                Debug.LogError($"[VRTrainingAPI] Failed to create session: {request.error}");
-                onCreated?.Invoke(null);
-            }
+        if (request.result == UnityWebRequest.Result.Success)
+        {
+            string json = request.downloadHandler.text;
+            var response = JsonUtility.FromJson<SessionResponse>(json);
+            sessionId = response.session_id;
+            Debug.Log("[VRTrainingAPI] Session Created: " + sessionId);
+            onCreated?.Invoke(sessionId);
+        }
+        else
+        {
+            Debug.LogError($"[VRTrainingAPI] Failed to create session: {request.error}");
+            onCreated?.Invoke(null);
         }
     }
 
@@ -74,7 +72,7 @@ public class VRTrainingAPI : MonoBehaviour
 
     private IEnumerator GetScenariosCoroutine(Action<string> onResult)
     {
-        string url = $"{baseUrl}/scenarios";
+        string url = $"{config.baseUrl}/scenarios";
         using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
             yield return request.SendWebRequest();
@@ -106,7 +104,7 @@ public class VRTrainingAPI : MonoBehaviour
 
     private IEnumerator SendMessageCoroutine(string scenarioId, string userInput, Action<string> onResponse)
     {
-        string url = $"{baseUrl}/chat/non-streaming";
+        string url = $"{config.baseUrl}/chat/non-streaming";
 
         ChatRequestBody body = new ChatRequestBody
         {

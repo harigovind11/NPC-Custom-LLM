@@ -2,43 +2,90 @@ using UnityEngine;
 using UnityEngine.Networking;
 using TMPro;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
 
 [System.Serializable]
-public class SessionDataInfo
+public class DetailedAnalysis
 {
-    public string created_at;
-    public string last_activity;
-    public int conversation_count;
+    public CommunicationSkills communication_skills;
 }
 
 [System.Serializable]
-public class SkillBreakdown
+public class CommunicationSkills
 {
-    public float communication_skills;
-    public float problem_solving;
-    public float customer_service;
-    public float scenario_handling;
+    public float score;
+    public string[] strengths;
+    public string[] improvements;
+}
+
+[System.Serializable]
+public class Feedback
+{
+    public int turn;
+    public string timestamp;
+    public string feedback;
+    public float score;
+    public string emotional_state;
+    public DetailedAnalysis detailed_analysis;
+    public string scenario_id;
+}
+
+[System.Serializable]
+public class EmotionalStates
+{
+    public SerializableDictionary<string, int> emotion_distribution;
+    public int positive_interactions;
+    public int negative_interactions;
+    public string dominant_emotion;
+}
+
+[System.Serializable]
+public class Metrics
+{
+    public int total_interactions;
+    public float average_score;
+    public string score_trend;
+    public string performance_level;
+    public EmotionalStates emotional_states;
+    public int scenarios_practiced;
+    public string[] improvement_areas;
+}
+
+// Serializable dictionary helper class
+[System.Serializable]
+public class SerializableDictionary<TKey, TValue> : ISerializationCallbackReceiver
+{
+    public List<TKey> keys = new List<TKey>();
+    public List<TValue> values = new List<TValue>();
+
+    private Dictionary<TKey, TValue> _dict = new Dictionary<TKey, TValue>();
+
+    public void OnBeforeSerialize() { }
+    public void OnAfterDeserialize()
+    {
+        _dict = new Dictionary<TKey, TValue>();
+        for (int i = 0; i < keys.Count; i++)
+            _dict[keys[i]] = values[i];
+    }
+
+    public Dictionary<TKey, TValue> ToDictionary() => _dict;
 }
 
 [System.Serializable]
 public class SessionSummaryResponse
 {
     public string session_id;
-    public SessionDataInfo session_data;
-    public int total_messages;
-    public int user_interactions;
-    public float average_score;
-    public int total_evaluations;
-    public string conversation_duration;
-    public string performance_trend;
-    public string[] scenarios_completed;
-    public SkillBreakdown skill_breakdown;
+    public Feedback[] feedbacks;
+    public Metrics metrics;
+    public int total_feedbacks;
 }
 
 public class SessionSummaryUI : MonoBehaviour
 {
     public TextMeshProUGUI summaryText; // Drag and drop in Inspector
-
+    public VRConfig config;
     void Start()
     {
         string sessionId = SessionData.sessionId;
@@ -48,7 +95,7 @@ public class SessionSummaryUI : MonoBehaviour
 
     IEnumerator GetSessionSummary(string sessionId)
     {
-        string url = $"https://vr-training-bot-api--d8e8mmg.bluetree-7578d21d.eastus.azurecontainerapps.io{sessionId}";
+        string url = $"{config.baseUrl}/session/summary/{sessionId}";
         UnityWebRequest request = UnityWebRequest.Get(url);
 
         yield return request.SendWebRequest();
@@ -61,34 +108,59 @@ public class SessionSummaryUI : MonoBehaviour
         else
         {
             string json = request.downloadHandler.text;
+            Debug.Log("Raw JSON:\n" + json);
 
             // Unity's JsonUtility does not support nested arrays well. If needed use Newtonsoft.Json
-            SessionSummaryResponse data = JsonUtility.FromJson<SessionSummaryResponse>(json);
+            SessionSummaryResponse data = Newtonsoft.Json.JsonConvert.DeserializeObject<SessionSummaryResponse>(json);
 
             DisplaySummary(data);
         }
     }
-
     void DisplaySummary(SessionSummaryResponse data)
     {
+        if (data == null)
+        {
+            summaryText.text = "Summary data is null.";
+            return;
+        }
+
+        string feedbackText = (data.feedbacks != null && data.feedbacks.Length > 0)
+            ? $"- Turn {data.feedbacks[0].turn}: {data.feedbacks[0].feedback} (Score: {data.feedbacks[0].score})"
+            : "No feedback yet.";
+
+        string emotions = "Unavailable";
+        if (data.metrics != null && data.metrics.emotional_states != null &&
+            data.metrics.emotional_states.emotion_distribution != null)
+        {
+            var emotionDict = data.metrics.emotional_states.emotion_distribution.ToDictionary();
+            emotions = string.Join(", ", emotionDict.Select(kv => $"{kv.Key}: {kv.Value}"));
+        }
+
+        string improvementAreas = (data.metrics?.improvement_areas != null)
+            ? string.Join(", ", data.metrics.improvement_areas)
+            : "None";
+
         string summary =
-            $"🆔 Session ID: {data.session_id}\n" +
-            $"🕒 Created At: {data.session_data.created_at}\n" +
-            $"🔄 Last Activity: {data.session_data.last_activity}\n" +
-            $"💬 Conversations: {data.session_data.conversation_count}\n" +
-            $"📨 Total Messages: {data.total_messages}\n" +
-            $"👥 User Interactions: {data.user_interactions}\n" +
-            $"⭐ Avg. Score: {data.average_score}\n" +
-            $"📊 Evaluations: {data.total_evaluations}\n" +
-            $"⏱ Duration: {data.conversation_duration}\n" +
-            $"📈 Trend: {data.performance_trend}\n\n" +
-            $"✅ Scenarios Completed:\n- {string.Join("\n- ", data.scenarios_completed)}\n\n" +
-            $"🧠 Skills:\n" +
-            $"• Communication: {data.skill_breakdown.communication_skills}\n" +
-            $"• Problem Solving: {data.skill_breakdown.problem_solving}\n" +
-            $"• Customer Service: {data.skill_breakdown.customer_service}\n" +
-            $"• Scenario Handling: {data.skill_breakdown.scenario_handling}";
+            // $" Session ID: {data.session_id}\n" +
+            $" Feedback: {feedbackText}\n" +
+            "--------------------------------------\n" +
+            $" Metrics:\n" +
+            "--------------------------------------\n" +
+            $"• Total Interactions: {data.metrics?.total_interactions}\n" +
+            $"• Avg. Score: {data.metrics?.average_score}\n" +
+            $"• Score Trend: {data.metrics?.score_trend}\n" +
+            $"• Performance: {data.metrics?.performance_level}\n" +
+            $" Emotional States:\n" +
+            "--------------------------------------\n" +
+            $"• Dominant: {data.metrics?.emotional_states?.dominant_emotion}\n" +
+            $"• Distribution: {emotions}\n" +
+            $"• Positive: {data.metrics?.emotional_states?.positive_interactions}\n" +
+            $"• Negative: {data.metrics?.emotional_states?.negative_interactions}\n" +
+            "--------------------------------------\n" +
+            $"🎯 Areas to Improve:\n{improvementAreas}";
 
         summaryText.text = summary;
     }
+
+
 }

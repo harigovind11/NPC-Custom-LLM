@@ -1106,7 +1106,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   scenarioButtonPrefab: {fileID: 6358822051837741229, guid: 43fd472a7293fc94381075ccfcc76a1a, type: 3}
   contentParent: {fileID: 1893684316}
-  jsonURL: https://vr-training-bot-api--d8e8mmg.bluetree-7578d21d.eastus.azurecontainerapps.io/scenarios
+  config: {fileID: 11400000, guid: a546c2df688ad87448bf50e431aaf387, type: 2}
 --- !u!4 &1820791659
 Transform:
   m_ObjectHideFlags: 0
@@ -1134,9 +1134,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5933c525f71cafd4a84d0030b35eba7b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selectedScenario:
-    id: 
-    customer_type: 
 --- !u!1 &1893684315
 GameObject:
   m_ObjectHideFlags: 0

@@ -26,11 +26,20 @@ public class GoogleCloudTTS : MonoBehaviour
 {
     public GoogleCloudConfig config;
     public AudioSource audioSource;
-
-    private string accessToken;
+    public TalkAnimationSync talkAnimation;
     private GoogleCredential credentials;
+    private string accessToken;
+    
+    void Awake()
+    {
+        if (audioSource == null)
+            audioSource = GetComponent<AudioSource>();
+
+        talkAnimation = GetComponent<TalkAnimationSync>();
+    }
 
     [Serializable]
+    
     private class GoogleCredential
     {
         public string type;
@@ -103,7 +112,15 @@ public class GoogleCloudTTS : MonoBehaviour
         {
             AudioClip clip = DownloadHandlerAudioClip.GetContent(audioRequest);
             audioSource.clip = clip;
+
+            // Start talking animation based on clip duration
+            if (talkAnimation != null)
+            {
+                talkAnimation.StartTalking(clip.length);
+            }
+
             audioSource.Play();
+
         }
         else
         {
