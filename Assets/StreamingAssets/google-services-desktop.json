@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "871568787873",
+    "project_id": "test-7d285",
+    "storage_bucket": "test-7d285.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:871568787873:android:033b98cdc49b6e63d323e0",
+        "android_client_info": {
+          "package_name": "com.iluzia.test1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGPsVVFGdInua3WAyO7qmDUspL3cX9zsU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
