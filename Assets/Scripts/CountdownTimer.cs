@@ -37,8 +37,5 @@ public class CountdownTimer : MonoBehaviour
             
     }
 
-  public  void SkipScene()
-    {
-        SceneManager.LoadScene(nextSceneName);
-    }
+
 }

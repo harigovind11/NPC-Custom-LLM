@@ -21,7 +21,7 @@ public class ScenarioUIManager : MonoBehaviour
         StartCoroutine(LoadScenarios());
     }
 
-    IEnumerator LoadScenarios()
+  public  IEnumerator LoadScenarios()
     {
 
         UnityWebRequest request = UnityWebRequest.Get($"{config.baseUrl}/scenarios");
@@ -76,5 +76,11 @@ public class ScenarioUIManager : MonoBehaviour
         
         
     }
+    
+    public void RefreshScenarios()
+    {
+        StartCoroutine(LoadScenarios());
+    }
+
 
 }

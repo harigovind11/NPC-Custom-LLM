@@ -9,8 +9,7 @@ using UnityEngine.Serialization;
 
 public class GoogleCloudSTT : MonoBehaviour
 {
-    // public AudioSource audioSource;
-    public int recordDuration = 5;
+
     public string languageCode = "en-US";
     public AudioClip recordedClip;
     private string accessToken;
